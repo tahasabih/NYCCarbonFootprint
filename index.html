@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="UTF-8">
+  <title>NYC Energy</title>
+    <link rel="stylesheet" type="text/css" href="cesium/Widgets/widgets.css" />
+    <title>NYC Energy Efficiency Map</title>
+    <style>
+       .cesium-viewer-bottom {display: none;}
+       #map {width:100%;length:100%;}
+    </style>
+
+ </head>
+ <body>
+    <div id="map">
+    </div>
+    <script src="Cesium/Cesium.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script type="text/javascript">
+    var locations;
+        $.ajax({
+            dataType: "json",
+            url: "locations.json",
+            success: function(data) {
+                locations = data;
+                addLines();
+                camera.flyTo({
+                    destination : Cesium.Cartesian3.fromDegrees(-73.959082,40.915096, 2000),
+                    orientation : {
+                        heading : Cesium.Math.toRadians(150),
+                        pitch : Cesium.Math.toRadians(-10.0),
+                        roll : 0.0
+                    }
+                });
+            }
+        });
+        var canvas3d = document.getElementById('map');
+        viewer = new Cesium.Viewer(canvas3d, {
+          animation: false,
+          baseLayerPicker: false,
+          fullscreenButton: false,
+          geocoder: false,
+          homeButton: false,
+          infoBox: false,
+          sceneModePicker: false,
+          selectionIndicator: false,
+          timeline: false,
+          navigationHelpButton: false,
+        });
+        scene = viewer.scene;
+        canvas = viewer.canvas;
+        camera = viewer.camera;
+
+        var terrainProvider = new Cesium.CesiumTerrainProvider({
+            url : '//assets.agi.com/stk-terrain/world'
+        });
+        viewer.terrainProvider = terrainProvider;
+
+
+        function addLines() {
+            for (var i=1;i<locations.length;i++) {
+                var surfacepos = new Cesium.Cartesian3.fromDegrees(locations[i].loc.lng, locations[i].loc.lat, 0);
+                var aerialpos = new Cesium.Cartesian3.fromDegrees(locations[i].loc.lng, locations[i].loc.lat, locations[i].co2*10);
+                var greenBox = viewer.entities.add({
+                        polyline : {
+                            show: true,
+                            positions : [surfacepos, aerialpos],
+                            shape :[new Cesium.Cartesian2(-20, -20),
+                                    new Cesium.Cartesian2(20, -20),
+                                    new Cesium.Cartesian2(20, 20),
+                                    new Cesium.Cartesian2(-20, 20)],
+                            cornerType : Cesium.CornerType.BEVELED,
+                            material : Cesium.Color.ORANGE.withAlpha(0.6),
+                            outline : true,
+                            outlineColor : Cesium.Color.BLACK,
+                            width: 10
+                        }
+                    });
+            }
+        }
+        rotate();
+
+        function rotate() {
+            camera.rotate(Cesium.Cartesian3.fromDegrees(-73.951529,40.790447), 0.001);
+            window.requestAnimationFrame(rotate);
+        }
+        
+
+        
+
+
+
+    </script>
+ </body>
+</html>
